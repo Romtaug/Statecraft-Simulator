@@ -1,0 +1,1 @@
+Statecraft Simulator is a detailed political and governance simulation game where players assume the role of a head of state. Manage national budgets, respond to crises, and navigate complex political landscapes to maintain stability and grow your nation's prosperity.
