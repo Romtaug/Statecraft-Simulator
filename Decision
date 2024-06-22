@@ -1,0 +1,128 @@
+import random
+
+class Government:
+    def __init__(self):
+        self.treasury = 10000
+        self.health_budget = 500
+        self.military_budget = 500
+        self.security_budget = 250
+        self.education_budget = 300
+        self.economic_growth = 0.02
+        self.presidential_approval = 50
+        self.international_relations = 70
+        self.environmental_health = 80
+        self.policies = {
+            '1': ('health_budget', self.adjust_budget),
+            '2': ('military_budget', self.adjust_budget),
+            '3': ('security_budget', self.adjust_budget),
+            '4': ('education_budget', self.adjust_budget),
+            '5': ('tax_increase', self.adjust_taxes),
+            '6': ('none', self.no_action)
+        }
+
+    def adjust_budget(self, budget_name, amount):
+        current_value = getattr(self, budget_name)
+        setattr(self, budget_name, current_value + amount)
+        self.treasury -= amount
+        self.update_approval(-amount / 100)
+        print(f"Adjusted {budget_name} by {amount}. New value: {getattr(self, budget_name)}.")
+
+    def adjust_taxes(self, amount):
+        self.treasury += amount
+        self.update_approval(amount / 50)
+        print(f"Taxes adjusted by {amount}. Treasury now {self.treasury}.")
+
+    def no_action(self, amount=None):
+        print("No action taken this turn.")
+
+    def update_approval(self, change):
+        self.presidential_approval += change
+        self.presidential_approval = max(0, min(100, self.presidential_approval))
+        print(f"Presidential approval updated to: {self.presidential_approval}%")
+
+    def update_economic_status(self):
+        self.treasury += int(self.treasury * self.economic_growth)
+        print(f"End of turn: Treasury is {self.treasury}, Economic Growth is {self.economic_growth:.2%}")
+
+class Population:
+    def __init__(self):
+        self.happiness = 60
+        self.health = 70
+
+    def adjust_happiness(self, impact):
+        self.happiness += impact
+        self.happiness = min(100, max(0, self.happiness))
+        print(f"Population happiness is now {self.happiness}%.")
+
+class World:
+    def __init__(self, government, population):
+        self.government = government
+        self.population = population
+
+    def simulate_turn(self):
+        print("\n--- New Government Turn ---")
+        if random.random() < 0.3:  # Increased chance for random events
+            self.random_event()
+
+        self.user_decision()
+        self.government.update_economic_status()
+
+    def random_event(self):
+        events = {
+            "economic": self.handle_economic_event,
+            "social": self.handle_social_event,
+            "health": self.handle_health_event,
+            "international": self.handle_international_event,
+            "environmental": self.handle_environmental_event
+        }
+        event_type = random.choice(list(events.keys()))
+        events[event_type]()
+
+    def handle_economic_event(self):
+        change = random.choice([-0.05, 0.05])
+        self.government.economic_growth += change
+        print(f"Random economic event changes growth by {change:.2%}.")
+
+    def handle_social_event(self):
+        impact = random.choice([-10, 10])
+        self.population.adjust_happiness(impact)
+
+    def handle_health_event(self):
+        impact = random.randint(-10, 10)
+        self.population.health += impact
+        print(f"Health event impacts population health by {impact} points.")
+
+    def handle_international_event(self):
+        change = random.choice([-5, 5])
+        self.government.international_relations += change
+        print(f"International relations adjusted by {change} points.")
+
+    def handle_environmental_event(self):
+        change = random.choice([-5, 5])
+        self.government.environmental_health += change
+        print(f"Environmental health changed by {change} points.")
+
+    def user_decision(self):
+        print("Choose a policy to implement:")
+        for key, (name, _) in self.government.policies.items():
+            print(f"{key}: {name.replace('_', ' ').title()}")
+        choice = input("Enter your choice (or 'none'): ")
+        policy = self.government.policies.get(choice, ('none', self.government.no_action))
+
+        if policy[0] != 'none':
+            try:
+                amount = int(input(f"Enter the amount for {policy[0]}: "))
+                policy[1](policy[0], amount)
+            except ValueError:
+                print("Invalid amount entered. Please enter a numerical value.")
+        else:
+            policy[1]()
+
+# Setup
+government = Government()
+population = Population()
+world_sim = World(government, population)
+
+# Simulation execution
+for _ in range(20):  # Simulate 20 turns
+    world_sim.simulate_turn()
